@@ -31,6 +31,8 @@ class SsoClientServiceProvider extends ServiceProvider {
             $this->app['SsoClient'] = $this->app->share(function () use ($config_client) {
                 return new SsoClient($config_client);
             });
+        }else{
+            throw new SsoAuthenticationException("no config found!");
         }
 	}
 
@@ -49,8 +51,14 @@ class SsoClientServiceProvider extends ServiceProvider {
      * @return array|mixed
      */
     public function config(){
-        if(strpos(app()->version(), 'Lumen')===false){
-            return config('sso.sso_client');
+        $app = app();
+        if(method_exists($app, 'version')){
+            $version = $app->version();
+        }else{
+            $version = $app::VERSION;
+        }
+        if(strpos($version, 'Lumen')===false){
+            return \Config::get('sso.sso_client');
         }else{
             return [
                 'sso_server_url'    => env('SSO_SERVER_URL'),

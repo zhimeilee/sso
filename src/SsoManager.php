@@ -38,3 +38,19 @@ trait SsoManager {
 	}
 
 }
+
+if(!function_exists('session')){
+    function session($key = null, $default = null)
+    {
+        $session = app('session');
+
+        if (is_null($key)) {
+            return $session;
+        }
+        if (is_array($key)) {
+            return $session->put($key);
+        }
+
+        return $session->get($key, $default);
+    }
+}

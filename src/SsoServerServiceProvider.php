@@ -35,6 +35,8 @@ class SsoServerServiceProvider extends ServiceProvider {
                 $model = app()->make($config_server['model']);
                 return new SsoServer($config_server, $model);
             });
+        }else{
+            throw new SsoAuthenticationException("no config found!");
         }
 	}
 
@@ -53,8 +55,14 @@ class SsoServerServiceProvider extends ServiceProvider {
      * @return array|mixed
      */
     public function config(){
-        if(strpos(app()->version(), 'Lumen')===false){
-            return config('sso.sso_server');
+        $app = app();
+        if(method_exists($app, 'version')){
+            $version = $app->version();
+        }else{
+            $version = $app::VERSION;
+        }
+        if(strpos($version, 'Lumen')===false){
+            return \Config::get('sso.sso_server');
         }else{
             $clients = [];
             for($i=1;;$i++){
