@@ -188,7 +188,7 @@ class SsoServer {
      * @throws SsoAuthenticationException
      */
     public function getClientInfo(){
-        $app_id = app('request')->input('app_id', '');
+        $app_id = app('request')->input('app_id', app('request')->input('state'));
         if(!isset($this->clients[$app_id])){
             throw new SsoAuthenticationException('app id is invalid!');
         }
