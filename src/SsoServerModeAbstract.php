@@ -6,7 +6,7 @@ abstract class SsoServerModeAbstract {
     /**
      * @param $username
      * @param $password
-     * @return mixed
+     * @return bool
      */
     abstract public function authenticate($username, $password);
 

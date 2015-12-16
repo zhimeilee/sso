@@ -19,7 +19,6 @@ class SsoServer {
     public function __construct($config, SsoServerModeAbstract $model)
     {
 
-
         if (!$config['driver']){
             throw new SsoAuthenticationException("SSO server driver not specified");
         }
@@ -27,6 +26,7 @@ class SsoServer {
         $this->model        = $model;
         $this->clients      = $config['clients'];
         $this->cache_driver = app('cache')->store($config['driver']);
+        $this->lifetime     = env('SSO_CACHE_LIFETIME', 120);
     }
 
 
@@ -57,6 +57,7 @@ class SsoServer {
     }
 
     public function login(){
+
         $app_info = $this->getClientInfo();
         $username = app('request')->input('username');
         $password = app('request')->input('password');
@@ -66,7 +67,13 @@ class SsoServer {
         if(!$this->model->authenticate($username, $password)){
             return redirect()->back()->with('error', 'Username or Password is incorrect!');
         }
-        return redirect($app_info['return_url']);
+        $userInfo = $this->model->getUserInfo($username);
+        $this->setUserInfoBySessionId(app('session')->getId(), $userInfo);
+        $return_url = $app_info['return_url'];
+        if(app('request')->input('state')){
+            $return_url .= '?state='.app('request')->input('state');
+        }
+        return redirect($return_url);
     }
 
     /**
@@ -89,7 +96,7 @@ class SsoServer {
      * @return mixed|null
      * @throws SsoAuthenticationException
      */
-    public function getUserInfo(){
+    public function userInfo(){
         $this->checkSignature();
         $access_token = app('request')->input('access_token');
         if(empty($access_token)){

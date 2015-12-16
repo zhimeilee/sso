@@ -111,23 +111,41 @@ class SsoClient {
 
     /**
      * Attach our session to the user's session on the SSO server.
-     * @param string|true $returnUrl  The URL the client should be returned to after attaching
+     * @param null $state
      * @return bool
      */
-    public function attach($returnUrl = null)
+    public function attach($state = null)
     {
         if ($this->isAttached()){
-            return false;
+            return true;
         }
-        if ($returnUrl === true) {
-            $returnUrl = app('request')->fullUrl();
+        $params = [];
+        if (!empty($state)) {
+            $params = ['state' => $state];
         }
-        $params = ['return_url' => $returnUrl];
         $url = $this->getAttachUrl($params);
         header("Location: $url", true, 307);
         echo "You're redirected to <a href='$url'>$url</a>";
-        return true;
+        return false;
     }
+
+    /**
+     * Re-Attach our session to the user's session on the SSO server.
+     * @param null $state
+     * @return bool
+     */
+    public function reAttach($state = null)
+    {
+        $params = [];
+        if (!empty($state)) {
+            $params = ['state' => $state];
+        }
+        $url = $this->getAttachUrl($params);
+        header("Location: $url", true, 307);
+        echo "You're redirected to <a href='$url'>$url</a>";
+        return false;
+    }
+
     /**
      * Get the request url for a command
      *
@@ -145,12 +163,11 @@ class SsoClient {
     }
 
     /**
-     * Execute on SSO server.
      * @param $method
      * @param $command
      * @param null $data
      * @return mixed|null
-     * @throws Exception
+     * @throws SsoAuthenticationException
      */
     protected function request($method, $command, $data = null)
     {
@@ -166,46 +183,27 @@ class SsoClient {
         }
         $response = curl_exec($ch);
         if (curl_errno($ch) != 0) {
-            throw new Exception("Server request failed: " . curl_error($ch), 500);
+            throw new SsoAuthenticationException("Server request failed: " . curl_error($ch), 500);
         }
 
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        list($contentType) = explode(';', curl_getinfo($ch, CURLINFO_CONTENT_TYPE));
-        if ($contentType != 'application/json') {
-            $message = "Expected application/json response, got $contentType";
-            error_log($message . "\n\n" . $response);
-            throw new Exception($message, $httpCode);
-        }
+//        list($contentType) = explode(';', curl_getinfo($ch, CURLINFO_CONTENT_TYPE));
+//        if ($contentType != 'application/json') {
+//            $message = "Expected application/json response, got $contentType";
+//            error_log($message . "\n\n" . $response);
+//            throw new SsoAuthenticationException($message, $httpCode);
+//        }
         $data = json_decode($response, true);
-        if ($httpCode >= 400) throw new Exception($data['error'] ?: $response, $httpCode);
+        if ($httpCode >= 400) throw new SsoAuthenticationException($data['error'] ?: $response, $httpCode);
         return $data;
     }
-    /**
-     * Log the client in at the SSO server.
-     *
-     * Only brokers marked trused can collect and send the user's credentials. Other brokers should omit $username and
-     * $password.
-     *
-     * @param string $username
-     * @param string $password
-     * @return array  user info
-     * @throws Exception if login fails eg due to incorrect credentials
-     */
-    public function login($username = null, $password = null)
-    {
-        if (!isset($username) && isset($_POST['username'])) $username = $_POST['username'];
-        if (!isset($password) && isset($_POST['password'])) $password = $_POST['password'];
-        $result = $this->request('POST', 'login', compact('username', 'password'));
-        $this->userinfo = $result;
 
-        return $this->userinfo;
-    }
     /**
      * Logout at sso server.
      */
     public function logout()
     {
-        $this->request('POST', 'logout');
+        $this->request('GET', 'logout');
     }
     /**
      * Get user information.
