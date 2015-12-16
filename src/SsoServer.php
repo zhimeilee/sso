@@ -49,13 +49,17 @@ class SsoServer {
             $session_id = app('session')->getId();
             $this->setSessionIdByAccessToken($access_token, $session_id);
         }
-        $userInfo = $this->getUserInfoBySessionId($session_id);
+        $userInfo = $this->getUserBySessionId($session_id);
         if(empty($userInfo)){
             return view('sso::login');
         }
         return redirect($app_info['return_url']);
     }
 
+    /**
+     * @return \Illuminate\Http\RedirectResponse|\Laravel\Lumen\Http\Redirector
+     * @throws SsoAuthenticationException
+     */
     public function login(){
 
         $app_info = $this->getClientInfo();
@@ -67,8 +71,24 @@ class SsoServer {
         if(!$this->model->authenticate($username, $password)){
             return redirect()->back()->with('error', 'Username or Password is incorrect!');
         }
-        $userInfo = $this->model->getUserInfo($username);
-        $this->setUserInfoBySessionId(app('session')->getId(), $userInfo);
+        $userInfo = $this->model->getUserByUsername($username);
+        $this->setUserBySessionId(app('session')->getId(), $userInfo);
+        $return_url = $app_info['return_url'];
+        if(app('request')->input('state')){
+            $return_url .= '?state='.app('request')->input('state');
+        }
+        return redirect($return_url);
+    }
+
+    /**
+     * @param int $user_id
+     * @return \Illuminate\Http\RedirectResponse|\Laravel\Lumen\Http\Redirector
+     * @throws SsoAuthenticationException
+     */
+    public function loginById($user_id){
+        $app_info = $this->getClientInfo();
+        $userInfo = $this->model->getUserById($user_id);
+        $this->setUserBySessionId(app('session')->getId(), $userInfo);
         $return_url = $app_info['return_url'];
         if(app('request')->input('state')){
             $return_url .= '?state='.app('request')->input('state');
@@ -87,7 +107,7 @@ class SsoServer {
         }
         $session_id = $this->getSessionIdByAccessToken($access_token);
         if(!empty($session_id)){
-            $this->setUserInfoBySessionId($session_id, null);
+            $this->setUserBySessionId($session_id, null);
             $this->setSessionIdByAccessToken($access_token, null);
         }
     }
@@ -106,14 +126,14 @@ class SsoServer {
         if(empty($session_id)){
             return null;
         }
-        return $this->getUserInfoBySessionId($session_id, null);
+        return $this->getUserBySessionId($session_id, null);
     }
 
     /**
      * @param $session_id
      * @param null $userInfo
      */
-    protected function setUserInfoBySessionId($session_id, $userInfo=null){
+    protected function setUserBySessionId($session_id, $userInfo=null){
         if($userInfo===null){
             $this->cache_driver->forget('SSO_user_info_by_'.$session_id);
         }else{
@@ -125,7 +145,7 @@ class SsoServer {
      * @param $session_id
      * @return mixed
      */
-    protected function getUserInfoBySessionId($session_id){
+    protected function getUserBySessionId($session_id){
         return $this->cache_driver->get('SSO_user_info_by_'.$session_id, null);
     }
 

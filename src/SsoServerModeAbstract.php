@@ -14,6 +14,12 @@ abstract class SsoServerModeAbstract {
      * @param $username
      * @return mixed
      */
-    abstract public function getUserInfo($username);
+    abstract public function getUserByUsername($username);
+
+    /**
+     * @param $user_id
+     * @return mixed
+     */
+    abstract public function getUserById($user_id);
 
 }

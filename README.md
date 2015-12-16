@@ -64,18 +64,39 @@ use Zhimei\sso\SsoServerModeAbstract;
 class SsoUser extends SsoServerModeAbstract  {
 
     /**
-     * @param $username
-     * @param $password
-     * @return bool
-     */
-    public function authenticate($username, $password){
-        return true;
-    }
-
-    public function getUserInfo($username){
-        $user = ['li'=>['id'=>1, 'username'=>'lee']];
-        return $user[$username];
-    }
+         * @param $username
+         * @param $password
+         * @return bool
+         */
+        public function authenticate($username, $password){
+            $user = User::where('username', $username)->first();
+            if(empty($user)){
+                return false;
+            }
+            if(!password_verify($password, $user->password)){
+                return false;
+            }
+            return true;
+        }
+    
+        /**
+         * @param $username
+         * @return null
+         */
+        public function getUserByUsername($username){
+            $user = User::where('username', $username)->first();
+            if(empty($user)){
+                return null;
+            }
+            return $user->toArray();
+        }
+    
+        /**
+         * @param $user_id
+         */
+        public function getUserById($user_id){
+    
+        }
 
 }
 ```
