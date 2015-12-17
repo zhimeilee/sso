@@ -175,16 +175,16 @@ Get URL to attach session at SSO server.
 ```
 Attach our session to the user's session on the SSO server.
 ```php
-    app('SsoClient')->attach();
+    /**
+     * Attach our session to the user's session on the SSO server.
+     * @param null $state
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    return app('SsoClient')->attach();
 ```
 Get user information.
 ```php
     app('SsoClient')->getUserInfo();
-```
-Re-Attach our session to the user's session on the SSO server.
-if app('SsoClient')->getUserInfo() is empty, so redo attach.
-```php
-    app('SsoClient')->reAttach();
 ```
 Logout at sso server
 ```php
@@ -196,13 +196,14 @@ In your routes.php use the following code:
 ```php
 #for Lumen
 $app->get('login', function()use($app){
-    if($app['SsoClient']->attach()){
-        $userInfo = $app['SsoClient']->getUserInfo();
+    if($app['SsoClient']::isAttached()){
+        $userInfo = app('SsoClient')->getUserInfo();
         if(empty($userInfo)){
-            $app['SsoClient']->reAttach();
-            return;
+            return app('SsoClient')->reAttach();
         }
         return $userInfo;
+    }else{
+        return $app['SsoClient']::attach();
     }
 });
 $app->get('logout', function()use($app){
@@ -211,13 +212,14 @@ $app->get('logout', function()use($app){
 
 #for Laravel
 Route::get('login', function(){
-    if(\SsoClient::attach()){
-        $userInfo = \SsoClient::getUserInfo();
+    if(\SsoClient::isAttached()){
+        $userInfo = app('SsoClient')->getUserInfo();
         if(empty($userInfo)){
-            \SsoClient::reAttach();
-            return;
+            return app('SsoClient')->reAttach();
         }
         return $userInfo;
+    }else{
+        return \SsoClient::attach();
     }
 });
 Route::get('logout', function(){

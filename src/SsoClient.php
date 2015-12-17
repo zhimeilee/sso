@@ -77,7 +77,7 @@ class SsoClient {
 
         $this->token = base_convert(md5(uniqid(rand(), true)), 16, 36);
         session([$this->getCacheName()=>$this->token]);
-
+        app('session')->save();
     }
 
     /**
@@ -112,27 +112,22 @@ class SsoClient {
     /**
      * Attach our session to the user's session on the SSO server.
      * @param null $state
-     * @return bool
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function attach($state = null)
     {
-        if ($this->isAttached()){
-            return true;
-        }
         $params = [];
         if (!empty($state)) {
             $params = ['state' => $state];
         }
         $url = $this->getAttachUrl($params);
-        header("Location: $url", true, 307);
-        echo "You're redirected to <a href='$url'>$url</a>";
-        return false;
+        return redirect($url);
     }
 
     /**
      * Re-Attach our session to the user's session on the SSO server.
      * @param null $state
-     * @return bool
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function reAttach($state = null)
     {
@@ -141,9 +136,7 @@ class SsoClient {
             $params = ['state' => $state];
         }
         $url = $this->getAttachUrl($params);
-        header("Location: $url", true, 307);
-        echo "You're redirected to <a href='$url'>$url</a>";
-        return false;
+        return redirect($url);
     }
 
     /**
