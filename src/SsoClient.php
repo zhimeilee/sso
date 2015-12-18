@@ -197,6 +197,7 @@ class SsoClient {
     public function logout()
     {
         $this->request('GET', 'logout');
+        app('session')->forget($this->getCacheName());
     }
     /**
      * Get user information.
