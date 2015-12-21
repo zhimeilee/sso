@@ -110,6 +110,7 @@ class SsoServer {
             $this->setUserBySessionId($session_id, null);
             $this->setSessionIdByAccessToken($access_token, null);
         }
+        app('session')->flush();
     }
 
     /**
@@ -126,6 +127,7 @@ class SsoServer {
         if(empty($session_id)){
             return null;
         }
+        app('session')->flush();
         return $this->getUserBySessionId($session_id, null);
     }
 
