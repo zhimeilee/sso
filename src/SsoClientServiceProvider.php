@@ -32,7 +32,7 @@ class SsoClientServiceProvider extends ServiceProvider {
                 return new SsoClient($config_client);
             });
         }else{
-            throw new SsoAuthenticationException("no config found!");
+            //throw new SsoAuthenticationException("no config found!");
         }
 	}
 
