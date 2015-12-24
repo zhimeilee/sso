@@ -36,7 +36,7 @@ class SsoServerServiceProvider extends ServiceProvider {
                 return new SsoServer($config_server, $model);
             });
         }else{
-            throw new SsoAuthenticationException("no config found!");
+            //throw new SsoAuthenticationException("no config found!");
         }
 	}
 
