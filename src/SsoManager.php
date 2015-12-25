@@ -54,3 +54,12 @@ if(!function_exists('session')){
         return $session->get($key, $default);
     }
 }
+
+function redirect($to = null, $status = 302, $headers = [], $secure = null)
+{
+	if (is_null($to)) {
+	    return app('redirect');
+	}
+	
+	return app('redirect')->to($to, $status, $headers, $secure);
+}
