@@ -61,7 +61,7 @@ class SsoClient {
      *
      * @return string
      */
-    protected function getCacheName()
+    public function getCacheName()
     {
         return 'SSO_client_token_' . preg_replace('/[_\W]+/', '_', strtolower($this->sso_app_id));
     }
