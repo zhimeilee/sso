@@ -8,6 +8,7 @@ class SsoServer {
     public $model;
     public $clients;
     protected $sso_app_secret;
+    protected $redirect_url = null;
 
     public $lifetime = 120; // minutes
 
@@ -53,7 +54,7 @@ class SsoServer {
         if(empty($userInfo)){
             return view('sso::login');
         }
-        return redirect($app_info['return_url']);
+        return redirect($this->getRedirectUrl());
     }
 
     /**
@@ -61,8 +62,6 @@ class SsoServer {
      * @throws SsoAuthenticationException
      */
     public function login(){
-
-        $app_info = $this->getClientInfo();
         $username = app('request')->input('username');
         $password = app('request')->input('password');
         if(empty($username) || empty($password)){
@@ -73,11 +72,7 @@ class SsoServer {
         }
         $userInfo = $this->model->getUserByUsername($username);
         $this->setUserBySessionId(app('session')->getId(), $userInfo);
-        $return_url = $app_info['return_url'];
-        if(app('request')->input('state')){
-            $return_url .= '?state='.app('request')->input('state');
-        }
-        return redirect($return_url);
+        return redirect($this->getRedirectUrl());
     }
 
     /**
@@ -86,14 +81,39 @@ class SsoServer {
      * @throws SsoAuthenticationException
      */
     public function loginById($user_id){
-        $app_info = $this->getClientInfo();
+
         $userInfo = $this->model->getUserById($user_id);
         $this->setUserBySessionId(app('session')->getId(), $userInfo);
-        $return_url = $app_info['return_url'];
-        if(app('request')->input('state')){
-            $return_url .= '?state='.app('request')->input('state');
+        return redirect($this->getRedirectUrl());
+    }
+
+    /**
+     * @return null|string
+     * @throws SsoAuthenticationException
+     */
+    public function getRedirectUrl(){
+        if(empty($this->redirect_url)){
+            $app_info = $this->getClientInfo();
+            $redirect_url = $app_info['return_url'];
+        }else{
+            $redirect_url = $this->redirect_url;
         }
-        return redirect($return_url);
+
+        if(app('request')->input('state')){
+            if(strpos($redirect_url, '?')===false){
+                $redirect_url .= '?state='.app('request')->input('state');
+            }else{
+                $redirect_url .= '&state='.app('request')->input('state');
+            }
+        }
+        return $redirect_url;
+    }
+
+    /**
+     * @param $redirect_url
+     */
+    public function setRedirectUrl($redirect_url){
+        $this->redirect_url = $redirect_url;
     }
 
     /**
