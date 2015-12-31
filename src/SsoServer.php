@@ -46,15 +46,23 @@ class SsoServer {
         $this->checkSignature();
         $access_token = md5($token.$app_info['app_secret']);
         $session_id = $this->getSessionIdByAccessToken($access_token);
-        $cur_session = app('session')->getId();
-        $userInfo = $this->getUserBySessionId($cur_session);
-        if($session_id != $cur_session){
-            $this->setSessionIdByAccessToken($access_token, $cur_session);
+        if($session_id){
+            $userInfo = $this->getUserBySessionId($session_id);
+            if(empty($userInfo)){
+                return view('sso::login');
+            }else{
+                return redirect($this->getRedirectUrl());
+            }
+        }else{
+            $session_id = app('session')->getId();
+            $this->setSessionIdByAccessToken($access_token, $session_id);
+            $userInfo = $this->getUserBySessionId($session_id);
+            if(empty($userInfo)){
+                return view('sso::login');
+            }else{
+                return redirect($this->getRedirectUrl());
+            }
         }
-        if(empty($userInfo)){
-            return view('sso::login');
-        }
-        return redirect($this->getRedirectUrl());
     }
 
     /**
