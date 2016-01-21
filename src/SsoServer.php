@@ -163,7 +163,7 @@ class SsoServer {
      * @param $session_id
      * @param null $userInfo
      */
-    protected function setUserBySessionId($session_id, $userInfo=null){
+    public function setUserBySessionId($session_id, $userInfo=null){
         if($userInfo===null){
             $this->cache_driver->forget('SSO_user_info_by_'.$session_id);
         }else{
