@@ -22,4 +22,9 @@ abstract class SsoServerModeAbstract {
      */
     abstract public function getUserById($user_id);
 
+    /**
+     * @return mixed
+     */
+    abstract public function getModel();
+
 }

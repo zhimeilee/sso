@@ -14,7 +14,7 @@ class SsoClientServiceProvider extends ServiceProvider {
         if(function_exists('config_path')){
             $this->publishes([
                 __DIR__.'/config/sso.php' => config_path('sso.php'),
-            ]);
+            ], 'config');
         }
 	}
 

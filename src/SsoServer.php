@@ -225,4 +225,14 @@ class SsoServer {
         return $this->clients[$app_id];
     }
 
+    /**
+     * @return array
+     */
+    public function search()
+    {
+        $this->checkSignature();
+        $model = $this->model->getModel();
+        return $model->where(app('request')->input('field'), app('request')->input('value'))->get();
+    }
+
 }

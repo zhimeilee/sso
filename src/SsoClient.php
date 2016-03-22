@@ -217,6 +217,19 @@ class SsoClient {
     }
 
     /**
+     * @param $key
+     * @param $value
+     * @return mixed|null
+     * @throws SsoAuthenticationException
+     */
+    public function searchBy($key, $value)
+    {
+        $params['field']    = $key;
+        $params['value']    = $value;
+        return $this->request('GET', 'search', $params);
+    }
+
+    /**
      * Magic method to do arbitrary request
      *
      * @param string $fn
